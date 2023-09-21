@@ -1,0 +1,5 @@
+replica0: PBFT_DEV=0 cargo r --bin kv-node
+replica1: PBFT_DEV=1 cargo r --bin kv-node
+replica2: PBFT_DEV=2 cargo r --bin kv-node
+replica3: PBFT_DEV=3 cargo r --bin kv-node
+replica4: PBFT_DEV=4 cargo r --bin kv-node

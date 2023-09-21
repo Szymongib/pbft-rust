@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "kv-node",
+    "pbft-core",
+]

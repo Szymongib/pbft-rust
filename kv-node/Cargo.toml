@@ -1,0 +1,29 @@
+[package]
+name = "kv-node"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = { version = "0.6.18", features = ["macros", "headers", "ws"] }
+config = "0.13.3"
+serde = { version = "1.0.163", features = ["derive"] }
+serde_json = "1.0.96"
+signal-hook = "0.3.15"
+thiserror = "1.0.40"
+tokio = { version = "1.28.2", features = ["tokio-macros", "tracing", "macros", "rt-multi-thread"] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.17", features = ["json", "env-filter"] }
+
+pbft-core = { path = "../pbft-core" }
+hyper = "0.14.27"
+reqwest = { version = "0.11.18", features = ["json"] }
+ed25519-dalek = "1.0.1"
+hex = "0.4.3"
+futures = "0.3.28"
+uuid = { version = "1.4.1", features = ["v4"] }
+
+[dev-dependencies]
+lazy_static = "1.4.0"
+
