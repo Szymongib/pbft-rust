@@ -6,7 +6,7 @@ use std::{
 use tracing::{debug, error, info, warn};
 
 use crate::{
-    api::{ClientRequestBroadcast, ConsensusMessageBroadcast},
+    api::{ClientRequestBroadcast, ProtocolMessageBroadcast},
     broadcast::PbftBroadcaster,
     config::NodeId,
     error::Error,
@@ -217,7 +217,7 @@ impl PbftExecutor {
                     });
                 // Broadcast leader's own Prepare
                 self.broadcaster
-                    .broadcast_consensus_message(ConsensusMessageBroadcast::new(prepare_cm));
+                    .broadcast_consensus_message(ProtocolMessageBroadcast::new(prepare_cm));
 
                 Ok(ClientRequestResult::Accepted(message_sequence))
             }
@@ -405,7 +405,7 @@ impl PbftExecutor {
         match self.initiate_view_change(&mut state) {
             Ok(vc) => self
                 .broadcaster
-                .broadcast_consensus_message(ConsensusMessageBroadcast {
+                .broadcast_consensus_message(ProtocolMessageBroadcast {
                     message: ProtocolMessage::ViewChange(vc),
                 }),
             Err(e) => {
@@ -428,7 +428,7 @@ impl PbftExecutor {
                 self.queue_event(event.into());
 
                 self.broadcaster
-                    .broadcast_consensus_message(ConsensusMessageBroadcast::new(prepare_cm));
+                    .broadcast_consensus_message(ProtocolMessageBroadcast::new(prepare_cm));
             }
             Err(err) => {
                 error!(err = ?err, "failed to process request broadcast event")
@@ -476,7 +476,7 @@ impl PbftExecutor {
                     }
 
                     self.broadcaster
-                        .broadcast_consensus_message(ConsensusMessageBroadcast::new(p_msg.clone()));
+                        .broadcast_consensus_message(ProtocolMessageBroadcast::new(p_msg.clone()));
                 }
 
                 if !responses.is_empty() {
@@ -836,10 +836,11 @@ impl PbftExecutor {
 
                     info!(sequence = idx.sequence, "applying message");
                     let result = state_machine.apply_operation(store_msg.operation());
-                    // We are going to asume that sequence numbers increment strictly by 1.
+                    // Sequence numbers increment strictly by 1.
                     *last_applied += 1;
                     assert!(*last_applied == idx.sequence);
 
+                    // Stop View Change timer if this message started it
                     if let Some(timer) = &state.timer {
                         // The message that started the timer was applied,
                         // so we can stop the timer.

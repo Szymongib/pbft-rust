@@ -16,7 +16,7 @@ use axum::{
 };
 use futures::{stream::FuturesUnordered, TryFutureExt};
 use pbft_core::{
-    api::ClientRequestBroadcast, api::ConsensusMessageBroadcast, ClientRequest, ClientRequestId,
+    api::ClientRequestBroadcast, api::ProtocolMessageBroadcast, ClientRequest, ClientRequestId,
     ClientResponse, OperationAck, OperationResultSequenced,
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -41,7 +41,7 @@ pub enum Error {
 trait VerifySignrature {
     fn verify_signature(
         &self,
-        peer_id: u64,
+        replica_id: u64,
         signature: &str,
         msg: &[u8],
     ) -> Result<(), axum::response::Response>;
@@ -120,14 +120,17 @@ impl ApiServer {
             .route("/", get(handle_kv_get))
             .route("/local", get(handle_kv_get_local));
 
+        // KV Nodes receives responses from pBFT replicas here
         let consensus_client_router =
             Router::new().route("/response", post(handle_client_consensus_response));
 
         // TODO: Paths could probably be better...
+        // KV Node translates the request to pBFT operation and send it here
         let consensus_ext_router = Router::new()
             // Request operation to execute
             .route("/operation", post(handle_consensus_operation_execute));
 
+        // pBFT nodes talking to each other
         let consensus_int_router = Router::new()
             // Client Request + PrePrepare broadcasted by the leader
             .route("/execute", post(handle_consensus_pre_prepare))
@@ -540,11 +543,11 @@ async fn handle_consensus_pre_prepare(
 
 async fn handle_consensus_message(
     ctx: axum::extract::State<HandlerContext>,
-    JsonAuthenticatedExt(client_request): JsonAuthenticatedExt<ConsensusMessageBroadcast>,
+    JsonAuthenticatedExt(protocol_msg): JsonAuthenticatedExt<ProtocolMessageBroadcast>,
 ) -> impl axum::response::IntoResponse {
     match ctx
         .pbft_module
-        .handle_consensus_message(client_request.sender_id, client_request.data.message)
+        .handle_consensus_message(protocol_msg.sender_id, protocol_msg.data.message)
     {
         Ok(_) => Ok(StatusCode::OK),
         Err(err) => {
@@ -595,7 +598,7 @@ mod tests {
 
     use ed25519_dalek::Signer;
     use pbft_core::{
-        api::{ConsensusMessageBroadcast, REPLICA_ID_HEADER, REPLICA_SIGNATURE_HEADER},
+        api::{ProtocolMessageBroadcast, REPLICA_ID_HEADER, REPLICA_SIGNATURE_HEADER},
         config::{key_pair_from_priv_hex, NodeId},
         dev::DEV_PRIVATE_KEYS,
         ProtocolMessage, SignMessage,
@@ -627,7 +630,7 @@ mod tests {
 
         // Pretend that we are another replica sending consensus message
         let endpoint = format!("{}/api/v1/pbft/message", node_url);
-        let msg = ConsensusMessageBroadcast {
+        let msg = ProtocolMessageBroadcast {
             message: ProtocolMessage::Prepare(
                 pbft_core::Prepare {
                     replica_id: NodeId(1),
@@ -686,7 +689,7 @@ mod tests {
         assert!(resp_body.contains("Invalid signature"));
 
         // Signature does not match body
-        let msg2 = ConsensusMessageBroadcast {
+        let msg2 = ProtocolMessageBroadcast {
             message: ProtocolMessage::Prepare(
                 pbft_core::Prepare {
                     replica_id: NodeId(1),

@@ -12,7 +12,7 @@ mod tests {
     pub struct NoopBroadcast;
 
     impl PbftBroadcaster for NoopBroadcast {
-        fn broadcast_consensus_message(&self, _msg: crate::api::ConsensusMessageBroadcast) -> () {}
+        fn broadcast_consensus_message(&self, _msg: crate::api::ProtocolMessageBroadcast) -> () {}
         fn broadcast_operation(&self, _msg: crate::api::ClientRequestBroadcast) -> () {}
         fn send_client_responses(&self, _responses: Vec<crate::ClientResponse>) -> () {}
     }

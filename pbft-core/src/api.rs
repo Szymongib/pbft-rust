@@ -13,11 +13,11 @@ pub struct ClientRequestBroadcast {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConsensusMessageBroadcast {
+pub struct ProtocolMessageBroadcast {
     pub message: ProtocolMessage,
 }
 
-impl ConsensusMessageBroadcast {
+impl ProtocolMessageBroadcast {
     pub fn new(message: ProtocolMessage) -> Self {
         Self { message }
     }

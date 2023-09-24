@@ -7,7 +7,7 @@ use tracing::{debug, error};
 
 use crate::{
     api::{
-        ClientRequestBroadcast, ConsensusMessageBroadcast, REPLICA_ID_HEADER,
+        ClientRequestBroadcast, ProtocolMessageBroadcast, REPLICA_ID_HEADER,
         REPLICA_SIGNATURE_HEADER,
     },
     config::{NodeConfig, NodeId},
@@ -60,7 +60,7 @@ impl BroadcastError {
 }
 
 pub trait PbftBroadcaster: Send + Sync {
-    fn broadcast_consensus_message(&self, msg: ConsensusMessageBroadcast);
+    fn broadcast_consensus_message(&self, msg: ProtocolMessageBroadcast);
     fn broadcast_operation(&self, msg: ClientRequestBroadcast);
     fn send_client_responses(&self, responses: Vec<ClientResponse>);
 }
@@ -273,7 +273,7 @@ impl PbftBroadcaster for Broadcaster {
         });
     }
 
-    fn broadcast_consensus_message(&self, msg: ConsensusMessageBroadcast) {
+    fn broadcast_consensus_message(&self, msg: ProtocolMessageBroadcast) {
         self.broadcast(
             msg,
             "api/v1/pbft/message",
