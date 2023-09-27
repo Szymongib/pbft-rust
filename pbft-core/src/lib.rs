@@ -364,6 +364,7 @@ pub struct ViewChangeCheckpoint {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PreparedProof {
     pub pre_prepare: SignedPrePrepare,
+    // Map public key to signed prepare message by the given replica.
     pub prepares: HashMap<String, SignedPrepare>,
 }
 

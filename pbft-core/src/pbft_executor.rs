@@ -936,11 +936,11 @@ impl PbftExecutor {
                 "checkpoint reached -- updating watermarks and discarding messages"
             );
             state.set_watermarks(checkpoint.sequence);
-            self.discard_messages(state, checkpoint.sequence);
+            self.discard_protocol_messages(state, checkpoint.sequence);
         }
     }
 
-    fn discard_messages(&self, state: &mut PbftState, check_seq: u64) {
+    fn discard_protocol_messages(&self, state: &mut PbftState, check_seq: u64) {
         let mut messages_to_discard = vec![];
         let mut idx_to_remove = vec![];
 
@@ -1051,6 +1051,11 @@ impl PbftExecutor {
                     "starting new view with {} ViewChange messages",
                     entry.len()
                 );
+
+                // TODO: if the new leader last checkpoiint is lower sequence
+                // than min-s it should also store the checkpoint proof and 
+                // discard old messages
+
                 let new_view = self.compose_new_view_message(view_change.view, entry)?;
 
                 let mut cm_messages = self.transition_view(
@@ -1299,6 +1304,9 @@ impl PbftExecutor {
     }
 
     fn verify_new_view(&self, new_view: &NewView) -> Result<()> {
+        // TODO: replica should also compute min-s and max-s to verify that the
+        // set of PrePrepare messages sent by the new leader is correct.
+
         if new_view.view_change_messages.len() < quorum_size(self.config.node_config.nodes.len()) {
             return Err(Error::InvalidViewChange(format!(
                 "Not enough ViewChange messages, got: {}, expected at least: {}",
