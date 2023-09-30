@@ -11,8 +11,13 @@ use crate::{
     SignedPrePrepare, SignedPrepare, SignedViewChange,
 };
 
+/// ConsensusLog is a map of a combination of view and sequence numbers. It
+/// determines a state of a consensus for a specific request.
 type ConsensusLog = BTreeMap<ConsensusLogIdx, RequestConsensusState>;
+/// ViewChangeLog is a map of view number to a list of view change messages
 type ViewChangeLog = BTreeMap<u64, Vec<SignedViewChange>>;
+/// ConsensusLog is a map of sequence number to a checkpoint consensus state.
+/// It keeps track of Checkpoint messages for specific sequence numbers.
 type CheckpointLog = BTreeMap<u64, CheckpointConsensusState>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -27,7 +32,7 @@ pub enum ReplicaState {
 pub struct PbftState {
     pub(crate) replica_state: ReplicaState,
     pub(crate) view: u64,
-    // pub(crate) sequence: u64,
+
     pub(crate) high_watermark: u64,
     pub(crate) low_watermark: u64,
     /// watermark_k defines the range between low and high watermarks

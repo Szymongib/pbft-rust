@@ -35,7 +35,7 @@ pub type Result<T> = std::result::Result<T, error::Error>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub enum Operation {
-    Noop, // Used by the protocol
+    Noop, // Used by the protocol for NULL messages
     Set { key: String, value: String },
     Get { key: String },
 }

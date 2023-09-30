@@ -822,6 +822,12 @@ impl PbftExecutor {
                 // break the loop here.
                 continue;
             }
+            // In case we have applied a message with the same sequence, we skip
+            // it. This can happen due to view change -- having a consensus 
+            // entry for the same message (sequence) in different views.
+            if idx.sequence == *last_applied {
+                continue;
+            }
             if idx.sequence > *last_applied + 1 {
                 break;
             }
