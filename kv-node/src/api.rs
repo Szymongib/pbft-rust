@@ -125,7 +125,7 @@ impl ApiServer {
             Router::new().route("/response", post(handle_client_consensus_response));
 
         // TODO: Paths could probably be better...
-        // KV Node translates the request to pBFT operation and send it here
+        // KV Node translates the request to pBFT operation and sends it here
         let consensus_ext_router = Router::new()
             // Request operation to execute
             .route("/operation", post(handle_consensus_operation_execute));
@@ -205,9 +205,12 @@ where
 
         state.verify_signature(peer_id, &signature, &bytes)?;
 
+        let data = serde_json::from_slice(&bytes)
+            .map_err(|err| (StatusCode::BAD_REQUEST, err.to_string()).into_response())?;
+
         Ok(JsonAuthenticatedExt(JsonAuthenticated {
             sender_id: peer_id,
-            data: serde_json::from_slice(&bytes).unwrap(),
+            data: data,
         }))
     }
 }
