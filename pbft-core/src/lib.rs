@@ -356,8 +356,7 @@ pub struct ViewChange {
 pub struct ViewChangeCheckpoint {
     pub sequence: u64,
     pub digest: CheckpointDigest,
-    // Map public key to checkpoint signed checkpoint message by the given
-    // replica.
+    // Map public key to signed checkpoint message by the given replica.
     pub checkpoint_proofs: HashMap<String, SignedCheckpoint>,
 }
 
