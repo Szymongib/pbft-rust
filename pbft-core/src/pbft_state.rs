@@ -44,7 +44,6 @@ pub struct PbftState {
     pub(crate) consensus_log: ConsensusLog,
     pub(crate) checkpoint_log: CheckpointLog,
 
-    // For view change log, the key is the view number
     pub(crate) view_change_log: ViewChangeLog,
 
     pub(crate) timer: Option<ViewChangeTimer>,
@@ -89,6 +88,9 @@ impl PbftState {
     }
 
     pub fn set_watermarks(&mut self, low: u64) {
+        if self.low_watermark > low {
+            return;
+        }
         self.low_watermark = low;
         self.high_watermark = low + self.watermark_k;
     }
@@ -130,8 +132,8 @@ pub struct RequestConsensusState {
     pub prepare: Vec<SignedPrepare>,
     pub commit: Vec<SignedCommit>,
 
-    // Those will be flipped to true when the state is reached, so that the
-    // replica does not emmit the same message multiple times.
+    // Those will be flipped to true when the state is reached initially, so
+    // that the replica does not broadcast the same message multiple times.
     pub reported_prepared: bool,
     pub reported_committed_local: bool,
 }
